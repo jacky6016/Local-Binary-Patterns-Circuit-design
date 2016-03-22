@@ -100,40 +100,40 @@ always@(posedge clk or posedge reset) begin
 	end
 	else if(gray_ready) begin
 		if(entries_filled == 4'd0) begin
-			gray_addr <= gray_addr - 4'd129;
+			gray_addr <= gray_addr - 14'd129;
 		end
 		else if(entries_filled == 4'd1) begin
-			gray_addr <= gray_addr + 4'd1;
+			gray_addr <= gray_addr + 14'd1;
 		end
 		else if(entries_filled == 4'd2) begin
-			gray_addr <= gray_addr + 4'd127;
+			gray_addr <= gray_addr + 14'd127;
 		end
 		else if(entries_filled == 4'd3) begin
-			gray_addr <= gray_addr + 4'd128;
+			gray_addr <= gray_addr + 14'd128;
 		end
 		else if(entries_filled == 4'd4) begin
-			gray_addr <= gray_addr + 4'd1;
+			gray_addr <= gray_addr + 14'd1;
 		end
 		else if(entries_filled == 4'd5) begin
-			gray_addr <= gray_addr - 4'd128;
+			gray_addr <= gray_addr - 14'd128;
 		end
 		else if(entries_filled == 4'd6) begin
-			gray_addr <= gray_addr - 4'd127;
+			gray_addr <= gray_addr - 14'd127;
 		end
 		else if(entries_filled == 4'd7) begin
-			gray_addr <= gray_addr + 4'd256;
+			gray_addr <= gray_addr + 14'd256;
 		end
 		else if(entries_filled == 4'd8) begin
 			if(gray_addr[7] & gray_addr[6] & gray_addr[5] & gray_addr[4] & gray_addr[3] & gray_addr[2] & gray_addr[1] & gray_addr[0]) begin
-				gray_addr <= gray_addr + 4'd2;
+				gray_addr <= gray_addr + 14'd2;
 			end
 			else begin
-				gray_addr <= gray_addr - 4'd128;
+				gray_addr <= gray_addr - 14'd128;
 			end
 		end
 	end
 	else begin
-		gray_ready <= gray_ready;
+		gray_addr <= gray_addr;
 	end
 end
 
@@ -192,7 +192,7 @@ always@(posedge clk or posedge reset) begin
 		else
 			finish <= 1'd0;
 	end
-else
+end
 
 always@(posedge clk or posedge reset) begin
 	if(reset) begin
