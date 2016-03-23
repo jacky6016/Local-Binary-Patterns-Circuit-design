@@ -20,13 +20,12 @@ output  		finish;
 //====================================================================
 reg [13:0] 	gray_addr;
 reg 		gray_req;
-reg [13:0] 	lbp_addr, next_lbp_addr;
+reg [13:0] 	lbp_addr, nxt_lbp_addr;
 reg 		lbp_valid;
-reg [7:0] 	lbp_data;
+reg [7:0] 	lbp_data, nxt_lbp_data;
 reg 		finish;
 // 9 temp registers
 reg [7:0] g_c, g_p1, g_p2, g_p3, g_p4, g_p5, g_p6, g_p7, g_p8;
-reg [7:0] g_pn1, g_pn2, g_pn3, g_pn4, g_pn5, g_pn6, g_pn7, g_pn8;
 reg [1:0] state, nxt_state;
 reg [3:0] entries_filled;
 //====================================================================
@@ -141,21 +140,21 @@ always@(posedge clk or posedge reset) begin
 		lbp_addr <= 14'd129;
 	end
 	else begin
-		lbp_addr <= next_lbp_addr;
+		lbp_addr <= nxt_lbp_addr;
 	end
 end
 
 always@(*) begin
 	if(lbp_valid) begin
 		if(lbp_addr[6] & lbp_addr[5] & lbp_addr[4] & lbp_addr[3] & lbp_addr[2] & lbp_addr[1]) begin
-			next_lbp_addr = lbp_addr + 3;
+			nxt_lbp_addr = lbp_addr + 3;
 		end
 		else begin
-			next_lbp_addr = lbp_addr + 1;
+			nxt_lbp_addr = lbp_addr + 1;
 		end
 	end
 	else begin
-		next_lbp_addr = lbp_addr;
+		nxt_lbp_addr = lbp_addr;
 	end	
 end
 
@@ -188,7 +187,7 @@ always@(posedge clk or posedge reset) begin
 		lbp_data <= 8'd0;
 	end
 	else begin
-		lbp_data <= g_pn1 + g_pn2 + g_pn3 + g_pn4 + g_pn5 + g_pn6 + g_pn7 + g_pn8;
+		lbp_data <= nxt_lbp_data;
 	end
 end
 
@@ -220,59 +219,59 @@ end
 // LBP calculation
 always@(*)begin
 	if(g_p1 < g_c)begin
-		g_pn1  = 0;
+		nxt_lbp_data[0]  = 1'b0;
 	end
 	else begin
-		g_pn1 = 1;
+		nxt_lbp_data[0]  = 1'b1;
 	end
 	
 	if(g_p2 < g_c)begin
-		g_pn2  = 0;
+		nxt_lbp_data[1]  = 1'b0;
 	end
 	else begin
-		g_pn2 = 2;
+		nxt_lbp_data[1]  = 1'b1;
 	end
 	
 	if(g_p3 < g_c)begin
-		g_pn3  = 0;
+		nxt_lbp_data[2]  = 1'b0;
 	end
 	else begin
-		g_pn3 = 4;
+		nxt_lbp_data[2]  = 1'b1;
 	end
 	
 	if(g_p4 < g_c)begin
-		g_pn4  = 0;
+		nxt_lbp_data[3]  = 1'b0;
 	end
 	else begin
-		g_pn4 = 8;
+		nxt_lbp_data[3]  = 1'b1;
 	end
 	
 	if(g_p5 < g_c)begin
-		g_pn5  = 0;
+		nxt_lbp_data[4]  = 1'b0;
 	end
 	else begin
-		g_pn5 = 16;
+		nxt_lbp_data[4]  = 1'b1;
 	end
 	
 	if(g_p6 < g_c)begin
-		g_pn6  = 0;
+		nxt_lbp_data[5]  = 1'b0;
 	end
 	else begin
-		g_pn6 = 32;
+		nxt_lbp_data[5]  = 1'b1;
 	end
 	
 	if(g_p7 < g_c)begin
-		g_pn7  = 0;
+		nxt_lbp_data[6]  = 1'b0;
 	end
 	else begin
-		g_pn7 = 64;
+		nxt_lbp_data[6]  = 1'b1;
 	end
 	
 	if(g_p8 < g_c)begin
-		g_pn8  = 0;
+		nxt_lbp_data[7]  = 1'b0;
 	end
 	else begin
-		g_pn8 = 128;
+	nxt_lbp_data[7]  = 1'b1;
 	end
 end
 endmodule
