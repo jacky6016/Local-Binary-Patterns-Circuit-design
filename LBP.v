@@ -18,12 +18,12 @@ output  		finish;
 `define STATE_OUTPUT 2'd2
 `define STATE_IDLE	 2'd3
 //====================================================================
-reg [13:0] 	gray_addr, next_gray_addr;
-reg gray_req, next_gray_req;
+reg [13:0] 	gray_addr;
+reg 		gray_req;
 reg [13:0] 	lbp_addr, next_lbp_addr;
-reg lbp_valid, next_lbp_valid;
-reg [7:0] 	lbp_data, next_lbp_data;
-reg finish, next_finish;
+reg 		lbp_valid;
+reg [7:0] 	lbp_data;
+reg 		finish;
 // 9 temp registers
 reg [7:0] g_c, g_p1, g_p2, g_p3, g_p4, g_p5, g_p6, g_p7, g_p8;
 reg [7:0] g_pn1, g_pn2, g_pn3, g_pn4, g_pn5, g_pn6, g_pn7, g_pn8;
@@ -80,7 +80,7 @@ always@(posedge clk or posedge reset) begin
 	end
 	else if(gray_ready) begin
 		if(entries_filled == 4'd8) begin
-			if(gray_addr[7] & gray_addr[6] & gray_addr[5] & gray_addr[4] & gray_addr[3] & gray_addr[2] & gray_addr[1])
+			if(gray_addr[6] & gray_addr[5] & gray_addr[4] & gray_addr[3] & gray_addr[2] & gray_addr[1] & gray_addr[0])
 				entries_filled <= 4'd0;
 			else
 				entries_filled <= 4'd6;
@@ -100,19 +100,23 @@ always@(posedge clk or posedge reset) begin
 	end
 	else if(gray_ready) begin
 		if(entries_filled == 4'd0) begin
-			gray_addr <= gray_addr - 14'd129;
+			if(gray_addr[6] & gray_addr[5] & gray_addr[4] & gray_addr[3] & gray_addr[2] & gray_addr[1] & gray_addr[0]) begin
+				gray_addr <= gray_addr - 14'd127;
+			end
+			else
+				gray_addr <= gray_addr - 14'd129;
 		end
 		else if(entries_filled == 4'd1) begin
-			gray_addr <= gray_addr + 14'd1;
+			gray_addr <= gray_addr + 14'd256;
 		end
 		else if(entries_filled == 4'd2) begin
-			gray_addr <= gray_addr + 14'd127;
+			gray_addr <= gray_addr - 14'd128;
 		end
 		else if(entries_filled == 4'd3) begin
-			gray_addr <= gray_addr + 14'd128;
+			gray_addr <= gray_addr - 14'd127;
 		end
 		else if(entries_filled == 4'd4) begin
-			gray_addr <= gray_addr + 14'd1;
+			gray_addr <= gray_addr + 14'd256;
 		end
 		else if(entries_filled == 4'd5) begin
 			gray_addr <= gray_addr - 14'd128;
@@ -124,12 +128,7 @@ always@(posedge clk or posedge reset) begin
 			gray_addr <= gray_addr + 14'd256;
 		end
 		else if(entries_filled == 4'd8) begin
-			if(gray_addr[7] & gray_addr[6] & gray_addr[5] & gray_addr[4] & gray_addr[3] & gray_addr[2] & gray_addr[1] & gray_addr[0]) begin
-				gray_addr <= gray_addr + 14'd2;
-			end
-			else begin
-				gray_addr <= gray_addr - 14'd128;
-			end
+			gray_addr <= gray_addr - 14'd128;
 		end
 	end
 	else begin
@@ -148,7 +147,7 @@ end
 
 always@(*) begin
 	if(lbp_valid) begin
-		if(lbp_addr[7] & lbp_addr[6] & lbp_addr[5] & lbp_addr[4] & lbp_addr[3] & lbp_addr[2] & lbp_addr[1]) begin
+		if(lbp_addr[6] & lbp_addr[5] & lbp_addr[4] & lbp_addr[3] & lbp_addr[2] & lbp_addr[1]) begin
 			next_lbp_addr = lbp_addr + 3;
 		end
 		else begin
@@ -174,16 +173,6 @@ end
 
 always@(posedge clk or posedge reset) begin
 	if(reset) begin
-		lbp_data <= 8'd0;
-	end
-	else begin
-		// can't used nxt value!
-		lbp_data <= g_pn1 + g_pn2 + g_pn3 + g_pn4 + g_pn5 + g_pn6 + g_pn7 + g_pn8;
-	end
-end
-
-always@(posedge clk or posedge reset) begin
-	if(reset) begin
 		finish <= 1'b0;
 	end
 	else begin
@@ -191,6 +180,15 @@ always@(posedge clk or posedge reset) begin
 			finish <= 1'd1;
 		else
 			finish <= 1'd0;
+	end
+end
+
+always@(posedge clk or posedge reset) begin
+	if(reset) begin
+		lbp_data <= 8'd0;
+	end
+	else begin
+		lbp_data <= g_pn1 + g_pn2 + g_pn3 + g_pn4 + g_pn5 + g_pn6 + g_pn7 + g_pn8;
 	end
 end
 
@@ -207,75 +205,74 @@ always@(posedge clk or posedge reset) begin
 		g_p8 <= 8'd0;
 	end
 	else begin
-		g_c  <= g_p3;
-		g_p1 <= g_p2;
-		g_p2 <= g_p4;
+		g_c  <= g_p3;	
+		g_p1 <= g_p6;
+		g_p2 <= g_p7;
 		g_p3 <= g_p8;
-		g_p4 <= g_p6;
+		g_p4 <= g_p2;
 		g_p5 <= gray_data;
-		g_p6 <= g_p7;
+		g_p6 <= g_p4;		
 		g_p7 <= g_c;
 		g_p8 <= g_p5;
 	end
 end
 
-//combination
+// LBP calculation
 always@(*)begin
-	if( g_p1 - g_c < 0)begin
+	if(g_p1 < g_c)begin
 		g_pn1  = 0;
 	end
 	else begin
-		g_pn1 = g_p1;
+		g_pn1 = 1;
 	end
 	
-	if( g_p2 - g_c < 0)begin
+	if(g_p2 < g_c)begin
 		g_pn2  = 0;
 	end
 	else begin
-		g_pn2 = g_p2 << 1;
+		g_pn2 = 2;
 	end
 	
-	if( g_p3 - g_c < 0)begin
+	if(g_p3 < g_c)begin
 		g_pn3  = 0;
 	end
 	else begin
-		g_pn3 = g_p3 << 2;
+		g_pn3 = 4;
 	end
 	
-	if( g_p4 - g_c < 0)begin
+	if(g_p4 < g_c)begin
 		g_pn4  = 0;
 	end
 	else begin
-		g_pn4 = g_p4 << 3;
+		g_pn4 = 8;
 	end
 	
-	if( g_p5 - g_c < 0)begin
+	if(g_p5 < g_c)begin
 		g_pn5  = 0;
 	end
 	else begin
-		g_pn5 = g_p5 << 4;
+		g_pn5 = 16;
 	end
 	
-	if( g_p6 - g_c < 0)begin
+	if(g_p6 < g_c)begin
 		g_pn6  = 0;
 	end
 	else begin
-		g_pn6 = g_p6<<5;
+		g_pn6 = 32;
 	end
 	
-	if( g_p7 - g_c < 0)begin
+	if(g_p7 < g_c)begin
 		g_pn7  = 0;
 	end
 	else begin
-		g_pn7 = g_p7 << 6;
+		g_pn7 = 64;
 	end
 	
-	if( g_p8 - g_c < 0)begin
+	if(g_p8 < g_c)begin
 		g_pn8  = 0;
 	end
 	else begin
-		g_pn8 = g_p8 << 7;
+		g_pn8 = 128;
 	end
 end
-//====================================================================
 endmodule

@@ -57,6 +57,7 @@ initial begin
 	$fsdbDumpvars;
 end
 */
+end
 initial begin  // data input
    @(negedge clk)  reset = 1'b1; 
    #(`CYCLE*2);    reset = 1'b0; 
